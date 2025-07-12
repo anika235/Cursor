@@ -6,57 +6,46 @@ int main(){
     cin.tie(nullptr);
 
     int n; if(!(cin>>n)) return 0;
-    vector<int> finalOrder(n);
-    for(int &x: finalOrder) cin>>x;
+    vector<int> target(n);
+    for(int &x: target) cin>>x;
 
-    // current track and helper arrays
-    vector<int> track(n);
-    iota(track.begin(), track.end(), 1);
+    vector<pair<int,int>> ans;
+
+    // Phase-1: start with ascending 1..n   -> bubble to strict descending n..1
+    vector<int> line(n);
+    iota(line.begin(), line.end(), 1);
+
+    for(int i=1;i<n;++i){
+        int j=i;
+        while(j>0 && line[j] > line[j-1]){ // need bigger number to the left
+            ans.emplace_back(line[j], line[j-1]); // rear line[j] overtakes
+            swap(line[j], line[j-1]);
+            --j;
+        }
+    }
+
+    // Phase-2: transform descending order to required permutation
+    // Build position array
     vector<int> pos(n+1);
-    for(int i=0;i<n;++i) pos[track[i]] = i;
+    for(int i=0;i<n;++i) pos[line[i]] = i;
 
-    // keep how many times a pair (smaller,bigger) or (any order) was used
-    // using vector<unordered_map<int,int>> would be heavy, but n<=1000 so we can use matrix
-    static uint8_t used[1001][1001] = {0};
-
-    vector<pair<int,int>> overtakes; // answer
-
-    auto addSwap=[&](int back,int front){
-        overtakes.emplace_back(back,front);
-        used[back][front]++;
-        used[front][back]++;
-    };
-
-    // ----- Phase 1 : stable insertion sort (left -> right)
     for(int i=0;i<n;++i){
-        int target = finalOrder[i];
-        int p = pos[target];
-        while(p>i){
-            int back  = track[p];       // will overtake
-            int front = track[p-1];     // being overtaken
-            addSwap(back,front);
-            swap(track[p],track[p-1]);
-            pos[back]--; pos[front]++;
-            --p;
+        int car = target[i];
+        while(pos[car] > i){
+            int idx = pos[car];              // car is at idx > i
+            int front = line[idx-1];         // car immediately in front
+            ans.emplace_back(car, front);    // car overtakes front
+            swap(line[idx], line[idx-1]);
+            // update positions
+            pos[car]--;  pos[front]++;
         }
     }
 
-    // At this point track == finalOrder
-
-    // ----- Phase 2 : for every adjacent pair that still has 0 swaps possible (same initial order)
-    for(int i=0;i+1<n;++i){
-        int a = track[i];
-        int b = track[i+1];
-        if(a<b && used[a][b]==0){ // same relative order, still untouched
-            // perform b overtake a, then a overtake b (two swaps) and restore order
-            addSwap(b,a);
-            swap(track[i],track[i+1]);
-            addSwap(a,b);
-            swap(track[i],track[i+1]);
-        }
-    }
-
-    cout<<overtakes.size()<<"\n";
-    for(auto &p:overtakes) cout<<p.first<<' '<<p.second<<"\n";
+    // Sanity: line must equal target
+#ifdef LOCAL
+    for(int i=0;i<n;++i) assert(line[i]==target[i]);
+#endif
+    cout<<ans.size()<<"\n";
+    for(auto &p: ans) cout<<p.first<<' '<<p.second<<"\n";
     return 0;
 }
