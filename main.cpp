@@ -5,37 +5,58 @@ int main(){
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
 
-    int n;
-    if(!(cin>>n)) return 0;
+    int n; if(!(cin>>n)) return 0;
     vector<int> finalOrder(n);
     for(int &x: finalOrder) cin>>x;
 
-    // Current arrangement and position helper
+    // current track and helper arrays
     vector<int> track(n);
-    iota(track.begin(), track.end(), 1);   // 1,2,...,n
-    vector<int> pos(n+1);                  // pos[car] = index on track (0-based)
+    iota(track.begin(), track.end(), 1);
+    vector<int> pos(n+1);
     for(int i=0;i<n;++i) pos[track[i]] = i;
 
-    vector<pair<int,int>> overtakes;       // answer
+    // keep how many times a pair (smaller,bigger) or (any order) was used
+    // using vector<unordered_map<int,int>> would be heavy, but n<=1000 so we can use matrix
+    static uint8_t used[1001][1001] = {0};
 
-    // Place cars one-by-one from left to right
+    vector<pair<int,int>> overtakes; // answer
+
+    auto addSwap=[&](int back,int front){
+        overtakes.emplace_back(back,front);
+        used[back][front]++;
+        used[front][back]++;
+    };
+
+    // ----- Phase 1 : stable insertion sort (left -> right)
     for(int i=0;i<n;++i){
         int target = finalOrder[i];
-        // Move the target car leftwards until it reaches position i
-        while(pos[target] > i){
-            int idx = pos[target];          // idx > i
-            int behind = track[idx];       // car that will overtake
-            int front  = track[idx-1];     // car that will be overtaken
-            overtakes.emplace_back(behind, front);
-            swap(track[idx], track[idx-1]);
-            // update positions (behind moved left, front moved right)
-            pos[behind]--; 
-            pos[front]++;
+        int p = pos[target];
+        while(p>i){
+            int back  = track[p];       // will overtake
+            int front = track[p-1];     // being overtaken
+            addSwap(back,front);
+            swap(track[p],track[p-1]);
+            pos[back]--; pos[front]++;
+            --p;
         }
     }
 
-    cout << overtakes.size() << '\n';
-    for(auto &e : overtakes)
-        cout << e.first << ' ' << e.second << '\n';
+    // At this point track == finalOrder
+
+    // ----- Phase 2 : for every adjacent pair that still has 0 swaps possible (same initial order)
+    for(int i=0;i+1<n;++i){
+        int a = track[i];
+        int b = track[i+1];
+        if(a<b && used[a][b]==0){ // same relative order, still untouched
+            // perform b overtake a, then a overtake b (two swaps) and restore order
+            addSwap(b,a);
+            swap(track[i],track[i+1]);
+            addSwap(a,b);
+            swap(track[i],track[i+1]);
+        }
+    }
+
+    cout<<overtakes.size()<<"\n";
+    for(auto &p:overtakes) cout<<p.first<<' '<<p.second<<"\n";
     return 0;
 }
