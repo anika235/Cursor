@@ -77,82 +77,74 @@ int main(){
         for(long long v:b) fenwB.add(getId(v),1);
 
         // build exponent map
-        vector<int> exps(M+1,0);
-        vector<long long> SA=a, SB=b;
-        sort(SA.begin(), SA.end(), greater<>());
-        sort(SB.begin(), SB.end(), greater<>());
-        long long prod=1;
-        for(int i=0;i<n;++i){
-            long long mv=min(SA[i], SB[i]);
-            int id=getId(mv);
-            exps[id]++;
-            prod=prod*valMod[id]%MOD;
+        // compute initial product using counts of elements >= v
+        vector<int> freqA(M+1,0), freqB(M+1,0);
+        for(long long v: a) ++freqA[getId(v)];
+        for(long long v: b) ++freqB[getId(v)];
+
+        long long prod = 1;
+        long long cumA = 0, cumB = 0, prevMin = 0;
+        for(int id=M; id>=1; --id){ // iterate values in decreasing order
+            cumA += freqA[id];
+            cumB += freqB[id];
+            long long curMin = min(cumA, cumB);
+            long long exp = curMin - prevMin;
+            if(exp){
+                prod = prod * mod_pow(valMod[id], exp) % MOD;
+                prevMin = curMin;
+            }
         }
-        std::set<int> S;
-        for(int i=1;i<=M;++i) if(exps[i]) S.insert(i);
 
-        auto addExp=[&](int id){
-            if(exps[id]==0) S.insert(id);
-            exps[id]++;
+        // helpers to obtain counts of elements >= value with compressed id
+        auto count_ge_A = [&](int id){
+            return n - fenwA.sumPrefix(id-1);
         };
-        auto removeExp=[&](int id){
-            exps[id]--;
-            if(exps[id]==0) S.erase(id);
+        auto count_ge_B = [&](int id){
+            return n - fenwB.sumPrefix(id-1);
         };
-
-        auto predecessor=[&](int id){
-            auto it=S.lower_bound(id);
-            if(it==S.begin()) return -1; // should not happen
-            --it; return *it;
-        };
-
-        // helper to compute diff at value idx (with current fenwick)
-        auto diffAt=[&](int id){
-            int prefB=fenwB.sumPrefix(id-1);
-            int prefA=fenwA.sumPrefix(id-1);
-            return prefB - prefA; // diff = prefB_less - prefA_less
-        };
-
+        
         // Output answers
         vector<long long> answers;
         answers.reserve(q+1);
         answers.push_back(prod);
 
         vector<long long> curA=a, curB=b; // again for operations processing
-        for(int qi=0;qi<q;++qi){
-            int o=op[qi], x=idx[qi];
-            if(o==1){
-                long long old=curA[x];
-                long long newv=old+1;
-                int idNew=getId(newv);
-                int diff_old=diffAt(idNew);
-                // update fenwick counts
-                fenwA.add(getId(old), -1);
-                fenwA.add(idNew, +1);
-                curA[x]=newv;
-                if(diff_old==-1){
-                    // crossing -1 to 0
-                    addExp(idNew);
-                    int w=predecessor(idNew);
-                    removeExp(w);
-                    prod=prod*valMod[idNew]%MOD*invMod[w]%MOD;
+        for(int qi=0; qi<q; ++qi){
+            int o = op[qi], x = idx[qi];
+            if(o == 1){
+                long long oldVal = curA[x];
+                long long newVal = oldVal + 1;
+                int idOld = getId(oldVal);
+                int idNew = getId(newVal);
+
+                int geA_before = count_ge_A(idNew); // before modification
+                int geB = count_ge_B(idNew);
+
+                if(geA_before < geB){
+                    prod = prod * valMod[idNew] % MOD * invMod[idOld] % MOD;
                 }
+
+                // update fenwick
+                fenwA.add(idOld, -1);
+                fenwA.add(idNew, 1);
+                curA[x] = newVal;
             }else{
-                long long old=curB[x];
-                long long newv=old+1;
-                int idNew=getId(newv);
-                int diff_old=diffAt(idNew);
-                // update fenwick counts
-                fenwB.add(getId(old), -1);
-                fenwB.add(idNew, +1);
-                curB[x]=newv;
-                if(diff_old==0){
-                    // crossing 0 to -1
-                    removeExp(idNew);
-                    int w=predecessor(idNew);
-                    addExp(w);
-                    prod=prod*invMod[idNew]%MOD*valMod[w]%MOD;
+                long long oldVal = curB[x];
+                long long newVal = oldVal + 1;
+                int idOld = getId(oldVal);
+                int idNew = getId(newVal);
+
+                int geB_before = count_ge_B(idNew); // before modification
+                int geA = count_ge_A(idNew);
+
+                if(geB_before < geA){
+                    prod = prod * valMod[idNew] % MOD * invMod[idOld] % MOD;
                 }
+
+                // update fenwick
+                fenwB.add(idOld, -1);
+                fenwB.add(idNew, 1);
+                curB[x] = newVal;
             }
             answers.push_back(prod);
         }
