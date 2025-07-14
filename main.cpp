@@ -28,9 +28,9 @@ int main() {
 
         // ------------------------------------------------------------
         // 2. Frequency map for required numbers (sequence a)
+        //    use ordered map to guarantee worst-case O(log n)
         // ------------------------------------------------------------
-        unordered_map<int64, int> need;
-        need.reserve(n * 2);
+        map<int64,int> need;            // changed from unordered_map
         for (int64 x : a) ++need[x];
 
         // ------------------------------------------------------------
