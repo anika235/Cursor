@@ -34,14 +34,17 @@ int main() {
                 for (int used = 0; used <= HALF; ++used) if (dp[carry][used]) {
                     int total = carry + fv;                      // total v's in first bag now
 
-                    // upper bound for r: cannot move more than fv, total/2, or capacity left in bag2
-                    int maxR = min({fv, total / 2, HALF - used});
+                    if (total == 0) {
+                        // nothing to do
+                        ndp[0][used] = 1;
+                        continue;
+                    }
 
-                    for (int r = 0; r <= maxR; ++r) {
-                        int newCarry = total - 2 * r;            // remaining copies that will be incremented
-                        if (newCarry > 0 && r == 0) continue;    // need at least one witness in bag2
-
-                        int newUsed = used + r;
+                    // choose r (called x in the proof) in [1 .. maxR]
+                    int maxR = min(total / 2, HALF - used);
+                    for (int r = 1; r <= maxR; ++r) {
+                        int newCarry = total - 2 * r;            // copies that will be incremented to (v+1)
+                        int newUsed  = used + r;
                         ndp[newCarry][newUsed] = 1;
                     }
                 }
