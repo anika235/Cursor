@@ -45,10 +45,10 @@ static int noRemovalMatches(const vector<int>& a,const vector<int>& b)
     for(int pos=n-1; pos>=0; --pos){
         int i = pos+1;                 // convert to 1-based column index
         // add a_i
-        int colourA = i & 1;           // row 0
+        int colourA = pos & 1;           // row 0 ( (i-1)%2 )
         updateColour(colourA, a[pos]);
         // add b_i
-        int colourB = (i + 1) & 1;     // row 1
+        int colourB = (pos + 1) & 1;     // row 1 ( i%2 )
         updateColour(colourB, b[pos]);
 
         if(commonCnt>0) ++ans;         // suffix starting at i is "good"
@@ -76,9 +76,9 @@ static void buildGoodArrays(const vector<int>& a,const vector<int>& b,
 
     for(int pos=n-1; pos>=0; --pos){
         int i=pos+1; // 1-based index
-        // original orientation colours
-        int colA = i & 1;          // row 0
-        int colB = (i+1)&1;        // row 1
+        // original orientation colours (using 0-based pos)
+        int colA = pos & 1;          // row 0
+        int colB = (pos+1) & 1;      // row 1
         // flipped orientation colours
         int colAf = colB;          // swapped
         int colBf = colA;
