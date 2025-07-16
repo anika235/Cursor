@@ -56,6 +56,44 @@ static int noRemovalMatches(const vector<int>& a,const vector<int>& b)
     return ans;
 }
 
+// Helper function to compute good flags for both orientations in one pass
+static void buildGoodArrays(const vector<int>& a,const vector<int>& b,
+                            vector<char>& goodSame, vector<char>& goodFlip)
+{
+    int n=a.size();
+    goodSame.assign(n+2,0);
+    goodFlip.assign(n+2,0);
+
+    vector<int> cntE0(n+2,0), cntE1(n+2,0);
+    vector<int> cntF0(n+2,0), cntF1(n+2,0);
+    int interE=0, interF=0;
+
+    auto upd=[&](vector<int>& c0, vector<int>& c1, int &inter, int colour, int val){
+        if(c0[val]>0 && c1[val]>0) --inter; // remove pre common if existed
+        if(colour==0) ++c0[val]; else ++c1[val];
+        if(c0[val]>0 && c1[val]>0) ++inter;
+    };
+
+    for(int pos=n-1; pos>=0; --pos){
+        int i=pos+1; // 1-based index
+        // original orientation colours
+        int colA = i & 1;          // row 0
+        int colB = (i+1)&1;        // row 1
+        // flipped orientation colours
+        int colAf = colB;          // swapped
+        int colBf = colA;
+
+        upd(cntE0,cntE1,interE,colA, a[pos]);
+        upd(cntE0,cntE1,interE,colB, b[pos]);
+
+        upd(cntF0,cntF1,interF,colAf, a[pos]);
+        upd(cntF0,cntF1,interF,colBf, b[pos]);
+
+        goodSame[i] = (interE>0);
+        goodFlip[i] = (interF>0);
+    }
+}
+
 /* -------------------------------------------------------------
    Wrapper requested by the exercise.  At the moment we implement
    only the no-removal logic.  Extension with a single deletion
@@ -63,7 +101,26 @@ static int noRemovalMatches(const vector<int>& a,const vector<int>& b)
 -------------------------------------------------------------*/
 static inline int maxMatches(const vector<int>& a,const vector<int>& b)
 {
-    return noRemovalMatches(a,b);
+    const int n = (int)a.size();
+    if(n==0) return 0;
+
+    vector<char> goodSame, goodFlip;
+    buildGoodArrays(a,b,goodSame,goodFlip);
+
+    // prefix sums for same orientation
+    vector<int> prefSame(n+2,0);
+    for(int i=1;i<=n;i++) prefSame[i]=prefSame[i-1]+(goodSame[i]?1:0);
+    // suffix sums for flipped orientation
+    vector<int> sufFlip(n+3,0);
+    for(int i=n;i>=1;--i) sufFlip[i]=sufFlip[i+1]+(goodFlip[i]?1:0);
+
+    int best = prefSame[n]; // no removal case
+
+    for(int rem=1; rem<=n; ++rem){
+        int matches = prefSame[rem-1] + sufFlip[rem+1];
+        if(matches>best) best=matches;
+    }
+    return best;
 }
 
 /* --------------------- driver code ------------------------- */
