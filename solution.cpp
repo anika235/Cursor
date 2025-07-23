@@ -15,30 +15,21 @@ int main() {
         
         vector<tuple<int, int, int>> operations;
         
-        // We'll create a pattern where:
-        // Row i should become a cyclic shift of [1,2,3,...,n] by i positions
-        // Row 0: [1, 2, 3, ..., n]
-        // Row 1: [2, 3, 4, ..., n, 1] 
-        // Row 2: [3, 4, 5, ..., n, 1, 2]
-        // etc.
+        // For each row i (starting from row 2), we use exactly 2 operations:
+        // - For row 2: reverse [2, n] then [1, n]
+        // - For other rows: reverse [1, i] then [2, n]
+        // This creates a Latin square where each column is a permutation
         
         for (int i = 1; i < n; i++) {
-            // For row i (1-indexed i+1), we want to shift left by i positions
-            // Current state: [1, 2, 3, ..., n]
-            // Target state: [i+1, i+2, ..., n, 1, 2, ..., i]
-            
-            // Method: Use three reversals to achieve left rotation by i positions
-            // 1. Reverse first i elements: [1,2,...,i] -> [i,i-1,...,1]
-            // 2. Reverse remaining elements: [i+1,i+2,...,n] -> [n,n-1,...,i+1]  
-            // 3. Reverse entire array: [i,i-1,...,1,n,n-1,...,i+1] -> [i+1,i+2,...,n,1,2,...,i]
-            
-            if (i > 1) {
-                operations.push_back({i + 1, 1, i});
+            if (i == 1) {
+                // Row 2: reverse [2, n] then [1, n]
+                operations.push_back({i + 1, 2, n});
+                operations.push_back({i + 1, 1, n});
+            } else {
+                // Other rows: reverse [1, i+1] then [2, n]
+                operations.push_back({i + 1, 1, i + 1});
+                operations.push_back({i + 1, 2, n});
             }
-            if (n - i > 1) {
-                operations.push_back({i + 1, i + 1, n});
-            }
-            operations.push_back({i + 1, 1, n});
         }
         
         cout << operations.size() << "\n";
