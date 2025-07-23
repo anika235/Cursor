@@ -15,20 +15,19 @@ int main() {
         
         vector<tuple<int, int, int>> operations;
         
-        // For each row i (starting from row 2), we use exactly 2 operations:
-        // - For row 2: reverse [2, n] then [1, n]
-        // - For other rows: reverse [1, i] then [2, n]
-        // This creates a Latin square where each column is a permutation
+        // Process all rows from 1 to n:
+        // - For rows 1 to n-1: reverse [1,i] then [i+1,n]
+        // - For row n: reverse entire row [1,n]
+        // This ensures each column becomes a permutation
         
-        for (int i = 1; i < n; i++) {
-            if (i == 1) {
-                // Row 2: reverse [2, n] then [1, n]
-                operations.push_back({i + 1, 2, n});
-                operations.push_back({i + 1, 1, n});
+        for (int i = 1; i <= n; i++) {
+            if (i < n) {
+                // For rows 1 to n-1: two operations
+                operations.push_back(make_tuple(i, 1, i));
+                operations.push_back(make_tuple(i, i + 1, n));
             } else {
-                // Other rows: reverse [1, i+1] then [2, n]
-                operations.push_back({i + 1, 1, i + 1});
-                operations.push_back({i + 1, 2, n});
+                // For row n: one operation (reverse entire row)
+                operations.push_back(make_tuple(i, 1, n));
             }
         }
         
