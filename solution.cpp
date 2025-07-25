@@ -26,57 +26,83 @@ int main() {
         string l, r;
         cin >> l >> r;
         
-        int n = l.length();
-        int best = n * 2;
-        
-        // Use a set to avoid duplicate candidates
         set<string> candidates;
-        
-        // Always try the boundaries
         candidates.insert(l);
         candidates.insert(r);
-        
-        // Generate candidates by modifying each position
-        for (int pos = 0; pos < n; pos++) {
-            for (char d = '0'; d <= '9'; d++) {
-                string temp = l;
-                temp[pos] = d;
-                if (temp >= l && temp <= r) {
-                    candidates.insert(temp);
-                }
-            }
-        }
-        
-        // Build x greedily: for each position, choose digit that minimizes contribution
-        string x = l;
-        for (int pos = 0; pos < n; pos++) {
-            int best_contrib = 2;
-            char best_digit = x[pos];
+
+        int n = l.length();
+        int i = 0;
+        while (i < n && l[i] == r[i]) i++;
+
+        if (i < n) {
+            string common = l.substr(0, i);
             
-            for (char d = '0'; d <= '9'; d++) {
-                string temp = x;
-                temp[pos] = d;
-                
-                if (temp >= l && temp <= r) {
-                    int contrib = 0;
-                    if (d == l[pos]) contrib++;
-                    if (d == r[pos]) contrib++;
-                    
-                    if (contrib < best_contrib) {
-                        best_contrib = contrib;
-                        best_digit = d;
+            // Middle digits between l[i] and r[i]
+            for (char d = l[i] + 1; d < r[i]; d++) {
+                string cand = common + d;
+                for (int j = i+1; j < n; j++) {
+                    for (char c = '0'; c <= '9'; c++) {
+                        if (c != l[j] && c != r[j]) {
+                            cand += c;
+                            break;
+                        }
+                    }
+                    if (cand.length() <= i + 1 + j - i - 1) {
+                        // If we couldn't find a digit different from both l[j] and r[j]
+                        cand += '0'; // fallback
                     }
                 }
+                if (cand.length() == n) {
+                    candidates.insert(cand);
+                }
             }
-            x[pos] = best_digit;
+
+            // Candidate for d = l[i]
+            string cand1 = common + l[i];
+            bool tight = true;
+            for (int j = i+1; j < n; j++) {
+                bool found = false;
+                char start = tight ? l[j] : '0';
+                for (char c = start; c <= '9'; c++) {
+                    if (c != l[j] && c != r[j]) {
+                        cand1 += c;
+                        if (c > l[j]) tight = false;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    cand1 += l[j];
+                }
+            }
+            candidates.insert(cand1);
+
+            // Candidate for d = r[i]
+            string cand2 = common + r[i];
+            tight = true;
+            for (int j = i+1; j < n; j++) {
+                bool found = false;
+                char end = tight ? r[j] : '9';
+                for (char c = '0'; c <= end; c++) {
+                    if (c != l[j] && c != r[j]) {
+                        cand2 += c;
+                        if (c < r[j]) tight = false;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    cand2 += r[j];
+                }
+            }
+            candidates.insert(cand2);
         }
-        candidates.insert(x);
-        
-        // Test all candidates
-        for (const string& candidate : candidates) {
-            best = min(best, f(l, candidate) + f(candidate, r));
+
+        // Evaluate all candidates
+        int best = 2*n;
+        for (const auto& cand : candidates) {
+            best = min(best, f(l, cand) + f(cand, r));
         }
-        
         cout << best << "\n";
     }
     
