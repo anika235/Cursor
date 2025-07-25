@@ -32,18 +32,33 @@ int main() {
             continue;
         }
         
-        bool aliceWins = false;
-        
-        if (k == 1) {
-            // With ones >= 2, Alice cannot win
-            aliceWins = false;
-        } else {
-            // For k > 1, use minimum hitting set size
-            int hits = (n - 1) / k + 1;
-            aliceWins = (hits < k);
+        // Handle edge case for k = 0
+        if (k == 0) {
+            cout << (ones % 2 ? "Alice" : "Bob") << "\n";
+            continue;
         }
         
-        cout << (aliceWins ? "Alice" : "Bob") << "\n";
+        // Handle cases where ones > k
+        if (k == 1) {
+            if (ones % 2 == 0) {
+                cout << "Bob\n";
+            } else {
+                cout << "Alice\n";
+            }
+        } else {
+            int first = n, last = -1;
+            for (int i = 0; i < n; i++) {
+                if (s[i] == '1') {
+                    first = min(first, i);
+                    last = i;
+                }
+            }
+            if (last - first + 1 <= 2 * k) {
+                cout << "Alice\n";
+            } else {
+                cout << "Bob\n";
+            }
+        }
     }
     
     return 0;
