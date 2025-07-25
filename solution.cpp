@@ -1,41 +1,7 @@
 #include <iostream>
 #include <vector>
-#include <functional>
+#include <algorithm>
 using namespace std;
-
-long long calculate_sum(int root, const vector<pair<int, int>>& edges, int n) {
-    // Build adjacency list
-    vector<vector<int>> adj(n + 1);
-    for (auto& edge : edges) {
-        adj[edge.first].push_back(edge.second);
-    }
-    
-    // Calculate divineness for each node
-    long long total = 0;
-    
-    function<void(int, vector<int>&)> dfs = [&](int node, vector<int>& path) {
-        path.push_back(node);
-        
-        // Calculate divineness as minimum in path
-        int min_val = path[0];
-        for (int x : path) {
-            min_val = min(min_val, x);
-        }
-        total += min_val;
-        
-        // Recurse to children
-        for (int child : adj[node]) {
-            dfs(child, path);
-        }
-        
-        path.pop_back();
-    };
-    
-    vector<int> path;
-    dfs(root, path);
-    
-    return total;
-}
 
 int main() {
     ios_base::sync_with_stdio(false);
@@ -50,32 +16,96 @@ int main() {
         
         bool found = false;
         
-        // Try each possible root
-        for (int root = 1; root <= n && !found; root++) {
-            // Try to build a simple chain: root -> others in some order
-            vector<int> others;
-            for (int i = 1; i <= n; i++) {
-                if (i != root) {
-                    others.push_back(i);
+        // Try each possible root r from 1 to n
+        for (int r = 1; r <= n && !found; r++) {
+            if (r == 1) {
+                // Special case: root = 1, only achievable total is n (star tree)
+                if (m == n) {
+                    found = true;
+                    cout << "1\n";
+                    for (int i = 2; i <= n; i++) {
+                        cout << "1 " << i << "\n";
+                    }
+                }
+                continue;
+            }
+            
+            // For r >= 2
+            // Minimum total: r + (n-1) achieved by attaching all to node 1
+            long long min_total = r + (n - 1);
+            
+            if (m < min_total) continue;
+            
+            // Calculate extra needed beyond minimum
+            long long extra = m - min_total;
+            
+            // Strategy:
+            // - Node 1 is attached to root (contributes 1)
+            // - k nodes from {r+1, r+2, ..., n} attached to root (each gives extra r-1)
+            // - Use nodes {2, 3, ..., r-1} to provide remaining extra
+            
+            long long k = min((long long)(n - r), extra / (r - 1));
+            long long rem = extra - k * (r - 1);
+            
+            // Check if remainder can be achieved with nodes 2, 3, ..., r-1
+            // Each node i in {2, 3, ..., r-1} can provide at most (r-1) extra
+            // when attached to root instead of node 1
+            
+            // Maximum remainder we can achieve
+            long long max_rem = (long long)(r - 2) * (r - 1);
+            
+            if (rem > max_rem) continue;
+            
+            // Check if we can represent rem as sum of distinct values from {1, 2, ..., r-2}
+            // This corresponds to moving nodes {2, 3, ..., r-1} strategically
+            
+            // Use greedy approach: represent rem using largest possible values first
+            vector<bool> use_node(r, false);
+            long long temp_rem = rem;
+            
+            for (int i = r - 2; i >= 1 && temp_rem > 0; i--) {
+                if (temp_rem >= i) {
+                    use_node[i + 1] = true; // node (i+1) gets extra contribution i
+                    temp_rem -= i;
                 }
             }
             
-            // Try the chain in the natural order (excluding root)
+            if (temp_rem > 0) continue; // Cannot represent exactly
+            
+            // We found a valid configuration
+            found = true;
+            cout << r << "\n";
+            
             vector<pair<int, int>> edges;
-            int parent = root;
             
-            for (int node : others) {
-                edges.push_back({parent, node});
-                parent = node;
+            // Attach node 1 to root
+            edges.push_back({r, 1});
+            
+            // Attach k largest nodes to root
+            for (int i = 0; i < k; i++) {
+                int node = n - i;
+                if (node != r) {
+                    edges.push_back({r, node});
+                }
             }
             
-            long long sum = calculate_sum(root, edges, n);
-            if (sum == m) {
-                found = true;
-                cout << root << "\n";
-                for (auto& edge : edges) {
-                    cout << edge.first << " " << edge.second << "\n";
+            // Attach selected small nodes to root
+            for (int i = 2; i < r; i++) {
+                if (use_node[i]) {
+                    edges.push_back({r, i});
+                } else {
+                    edges.push_back({1, i});
                 }
+            }
+            
+            // Attach remaining large nodes to node 1
+            for (int i = r + 1; i <= n - k; i++) {
+                edges.push_back({1, i});
+            }
+            
+            // Output edges
+            for (auto& edge : edges) {
+                cout << edge.first << " " << edge.second << "\n";
             }
         }
         
