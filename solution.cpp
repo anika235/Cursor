@@ -49,19 +49,9 @@ int main() {
                 }
             }
         } else {
-            // For k > 1, find the maximum number of 0s in any substring of length k
-            int maxZerosInSubstring = 0;
-            for (int i = 0; i <= n - k; i++) {
-                int zeros = 0;
-                for (int j = i; j < i + k; j++) {
-                    if (s[j] == '0') zeros++;
-                }
-                maxZerosInSubstring = max(maxZerosInSubstring, zeros);
-            }
-            
-            // Alice wins if she can remove 1s faster than Bob can add them
-            // This happens when maxZerosInSubstring * 2 < k
-            aliceWins = (maxZerosInSubstring * 2 < k);
+            // For k > 1, use minimum hitting set size
+            int hits = (n - 1) / k + 1;
+            aliceWins = (hits < k);
         }
         
         cout << (aliceWins ? "Alice" : "Bob") << "\n";
