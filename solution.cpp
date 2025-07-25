@@ -35,19 +35,8 @@ int main() {
         bool aliceWins = false;
         
         if (k == 1) {
-            // Special case: k = 1
-            // Alice wins if there exists at least one isolated 1
-            for (int i = 0; i < n; i++) {
-                if (s[i] == '1') {
-                    bool isolated = true;
-                    if (i > 0 && s[i-1] == '1') isolated = false;
-                    if (i < n-1 && s[i+1] == '1') isolated = false;
-                    if (isolated) {
-                        aliceWins = true;
-                        break;
-                    }
-                }
-            }
+            // With ones >= 2, Alice cannot win
+            aliceWins = false;
         } else {
             // For k > 1, use minimum hitting set size
             int hits = (n - 1) / k + 1;
