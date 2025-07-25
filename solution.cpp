@@ -32,49 +32,68 @@ int main() {
             
             long long pos = start;
             int dir = 1; // 1 for right, -1 for left
-            bool escaped = false;
+            long long t_mod = 0;
+            set<tuple<int, int, int>> visited; // (light_index, dir, t_mod)
             
-            // Simulate movement for a sufficient number of steps
-            // Traffic light patterns repeat every k seconds
-            // In worst case, we need at most O(k + n) steps to determine the outcome
-            for (int time = 0; time < 4 * k + 2 * n; time++) {
+            while (true) {
                 // Check if we've escaped the strip
-                if (pos <= 0 || pos > 1e15) {
-                    escaped = true;
+                if (pos < 1 || pos > 1000000000000000LL) {
+                    cout << "YES\n";
                     break;
                 }
                 
-                // Check if current position has a red traffic light
-                bool red = false;
-                for (int i = 0; i < n; i++) {
-                    if (pos == p[i] && (time % k) == d[i]) {
-                        red = true;
+                // Find if we're at a traffic light
+                auto it = lower_bound(p.begin(), p.end(), pos);
+                bool at_light = (it != p.end() && *it == pos);
+                
+                if (at_light) {
+                    // We're at a traffic light
+                    int idx = it - p.begin();
+                    auto state = make_tuple(idx, dir, (int)t_mod);
+                    
+                    // Check for cycle
+                    if (visited.count(state)) {
+                        cout << "NO\n";
                         break;
                     }
-                }
-                
-                // If red light encountered, turn around
-                if (red) {
-                    dir = -dir;
-                }
-                
-                // Move one step in current direction
-                pos += dir;
-                
-                // Early termination: if we're far from all lights and moving away
-                if (n > 0) {
-                    if (pos < p[0] - k && dir == -1) {
-                        escaped = true;
-                        break;
+                    visited.insert(state);
+                    
+                    // Check if light is red and turn around if needed
+                    if (t_mod % k == d[idx]) {
+                        dir = -dir;
                     }
-                    if (pos > p[n-1] + k && dir == 1) {
-                        escaped = true;
-                        break;
+                    
+                    // Move one step and update time
+                    pos += dir;
+                    t_mod = (t_mod + 1) % k;
+                } else {
+                    // We're not at a traffic light, jump to the next one
+                    if (dir == 1) {
+                        // Moving right
+                        if (it == p.end()) {
+                            // No lights to the right, we'll escape
+                            cout << "YES\n";
+                            break;
+                        }
+                        long long next_p = *it;
+                        long long dist = next_p - pos;
+                        t_mod = (t_mod + dist) % k;
+                        pos = next_p;
+                    } else {
+                        // Moving left
+                        if (it == p.begin()) {
+                            // No lights to the left, we'll escape
+                            cout << "YES\n";
+                            break;
+                        }
+                        --it;
+                        long long next_p = *it;
+                        long long dist = pos - next_p;
+                        t_mod = (t_mod + dist) % k;
+                        pos = next_p;
                     }
                 }
             }
-            
-            cout << (escaped ? "YES" : "NO") << "\n";
         }
     }
     
