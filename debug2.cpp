@@ -1,0 +1,5 @@
+#include <bits/stdc++.h>
+using namespace std; using ll=long long;
+static int snap(long double v){return (int)llroundl(v);} 
+static bool solve_axis(const int P[3],const int F[3],ll &k,ll &c){if(P[0]==P[1]&&P[0]==P[2])return false;int i=0,j=1;if(P[i]==P[j])j=2;if(P[i]==P[j]){i=1;j=2;}ll denom=(ll)P[i]-P[j];ll numer=(ll)F[i]-F[j];if(numer%denom)return false;k=numer/denom; c=(ll)F[i]-k*P[i];return true;}
+int main(){int X0[3]={0,1,2},Y0[3]={1,1,1},XF[3]={1,2,3},YF[3]={2,2,2};int rx=10,ry=0;long double len=hypotl((long double)rx,(long double)ry);long double cs=rx/len,sn=ry/len;int PRx[3],PRy[3];for(int i=0;i<3;++i){long double xr=X0[i]*cs - Y0[i]*sn; long double yr=X0[i]*sn + Y0[i]*cs; PRx[i]=snap(xr); PRy[i]=snap(yr);} cout<<PRx[0]<<PRx[1]<<PRx[2]<<";"<<PRy[0]<<PRy[1]<<PRy[2]<<"\n"; ll kx,cx; if(solve_axis(PRx, XF,kx,cx)){ cout<<"kx="<<kx<<" cx="<<cx<<"\n";}else cout<<"fail\n"; ll ky,cy; if(solve_axis(PRy, YF,ky,cy)){ cout<<"ky="<<ky<<" cy="<<cy<<"\n";} else cout<<"faily\n";}
