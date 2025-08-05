@@ -1,0 +1,1 @@
+Candidate k=3 totalLen=4 digitsum=1 groups: 3M 1A

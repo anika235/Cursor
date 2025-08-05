@@ -1,0 +1,8 @@
+Loop k=0 M=1 q*M=3
+Loop k=1 M=1 q*M=3
+Loop k=2 M=1 q*M=3
+Loop k=3 M=1 q*M=3
+Candidate k=3 totalLen=4 digitsum=1 groups: 3M 1A
+Loop k=4 M=2 q*M=6
+Loop k=5 M=4 q*M=12
+Loop k=6 M=8 q*M=24

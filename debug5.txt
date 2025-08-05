@@ -1,0 +1,7 @@
+Loop k=0 M=1 q*M=3
+Loop k=1 M=2 q*M=6
+Loop k=2 M=4 q*M=12
+Trying d=1 ntL=0 ntH=1 rem=1 nxt=0
+digits chosen: 1 0 0
+Candidate k=2 totalLen=3 digitsum=1 groups: 2M 1A
+Loop k=3 M=8 q*M=24
