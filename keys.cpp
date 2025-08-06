@@ -115,8 +115,7 @@ int main(){
                         keyOpsBase += 2*aCnt[r];
                         fixedB |= 1u<<r;
                     }else{
-                        keyOpsBase += aCnt[r]; // detach one side (min)
-                        amb.push_back(r);
+                        amb.push_back(r);              // equal counts – decide later
                     }
                 }
             }
@@ -128,8 +127,14 @@ int main(){
                 uint32_t RA=fixedA, RB=fixedB;
                 int extraKeyOps=0;
                 for(int i=0;i<ambN;++i){
-                    int r=amb[i];
-                    if(sub>>i&1) RA |= 1u<<r; else RB |= 1u<<r;
+                    int r = amb[i];
+                    if(sub>>i & 1){                 // ring kept by Adam
+                        RA |= 1u<<r;
+                        extraKeyOps += 2*bCnt[r];   // move all Brenda keys on that ring
+                    }else{                          // ring kept by Brenda
+                        RB |= 1u<<r;
+                        extraKeyOps += 2*aCnt[r];   // move all Adam keys on that ring
+                    }
                 }
                 if(RA==0||RB==0) continue; // both need at least one ring
 
