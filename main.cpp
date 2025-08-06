@@ -167,10 +167,11 @@ static bool surviveT(const vector<Pt> &P, ll T, vector<Event> &ev, vector<ll> &v
     for (const auto &p : P) {
         ll u0 = p.x + p.y;
         ll v0 = p.x - p.y;
-        ll u1 = max(minU, u0 - range);
-        ll u2 = min(maxU, u0 + range);
-        ll v1 = max(minU, v0 - range);
-        ll v2 = min(maxU, v0 + range);
+        // Unsafe region: square of half-size T in (u, v) space
+        ll u1 = max(minU, u0 - T);
+        ll u2 = min(maxU, u0 + T);
+        ll v1 = max(minU, v0 - T);
+        ll v2 = min(maxU, v0 + T);
         if (u1 > u2 || v1 > v2) continue; // no overlap with player square
 
         ev.push_back({u1, +1, v1, v2});
